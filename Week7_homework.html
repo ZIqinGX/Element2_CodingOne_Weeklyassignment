@@ -1,0 +1,151 @@
+<html>
+  <head>
+    <!-- This is an HTML comment -->
+    <!-- Below we are grabbing three.js and some helper stuff for using the camera -->
+    <script src="./js/three.min.js"></script>
+    <script src="./js/OrbitControls.js"></script>
+
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0px;
+        background-color: #000000;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      // First we need to set up some objects and initialise them.
+      // Three.js provides a canvas automatically so we don't need that.
+      // This creates a camera. It has a field of view, a size, a near clipping plane and a far clipping plane
+      var camera = new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        1,
+        1000
+      );
+      // We need to create a scene and add things to it.
+      var scene = new THREE.Scene();
+      // Now we are goint to create some built in geometry
+      // It's a box.
+      var skyBox = new THREE.BoxGeometry(100, 100, 100);
+      // We are going to want to texture the box.
+      // To do this we need a texture loader object to load the texture
+      var skyBoxTextureLoader = new THREE.CubeTextureLoader();
+      skyBoxTextureLoader.setPath("img/");
+      // Then we can load the texture into a variable
+      var skyBoxTexture = skyBoxTextureLoader.load([
+        "right.png",
+        "left.png",
+        "bottom.png",
+        "top.png",
+        "front.png",
+        "back.png",
+      ]);
+      scene.background = skyBoxTexture;
+
+      //Add street
+      var street = new THREE.BoxGeometry(100, 10, 10);
+      var strtteTextureLoader = new THREE.TextureLoader();
+      strtteTextureLoader.setPath("img/");
+
+      var streetMaterials = [
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetRight.png"),
+        }),
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetRight.png"),
+        }),
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetFront.png"),
+        }),
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetFront.png"),
+        }),
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetFront.png"),
+        }),
+        new THREE.MeshBasicMaterial({
+          map: strtteTextureLoader.load("streetFront.png"),
+        }),
+      ];
+      streetMaterials.side = THREE.DoubleSide;
+      var streetMesh = new THREE.Mesh(street, streetMaterials);
+      streetMesh.position.set(0, -25, -45);
+      scene.add(streetMesh);
+
+      var marioWidth = 10; // ui: width
+      var marioheight = 20; // ui: height
+      var marioPlane = new THREE.PlaneGeometry(marioWidth, marioheight);
+      var marioLoader = new THREE.TextureLoader();
+      marioLoader.setPath("img/");
+      var marioMaterial = new THREE.MeshBasicMaterial({
+        map: marioLoader.load("Mario.png"),
+      });
+      marioMaterial.side = THREE.DoubleSide;
+      var Mario = new THREE.Mesh(marioPlane, marioMaterial);
+      Mario.position.set(-30, 10, -45);
+      scene.add(Mario);
+
+      var turtleWidth = 10; // ui: width
+      var turtleheight = 14.4; // ui: height
+      var turtlePlane = new THREE.PlaneGeometry(turtleWidth, turtleheight);
+      var turtleLoader = new THREE.TextureLoader();
+      turtleLoader.setPath("img/");
+      var turtleMaterial = new THREE.MeshBasicMaterial({
+        map: turtleLoader.load("turtle.png"),
+      });
+      turtleMaterial.side = THREE.DoubleSide;
+      var Turtle = new THREE.Mesh(turtlePlane, turtleMaterial);
+      Turtle.position.set(20, 10, -45);
+      scene.add(Turtle);
+
+      // If we want to see stuff, we will need a light.
+      // The argument is the colour of the light in hexadecimal.
+      var light = new THREE.DirectionalLight("rgb(255,255,255)");
+
+      // Now we can set some variables for the objects.
+      camera.position.set(0, 0, 0.1);
+      // Notice we can also us the set method to position things.
+      //light.position.z = 2;
+      light.position.set(0, 2, 2);
+      // Now we add the light to the scene.
+      scene.add(light);
+
+      // Now we can create our renderer. Thiis renders the scene.
+      var renderer = new THREE.WebGLRenderer();
+      // This is to make sure that the scene understands the resolution of the device we are on.
+      renderer.setPixelRatio(window.devicePixelRatio);
+      // We can also set the size of the render window
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      // Finally we want to connect the renderer to the HTML document
+      document.body.appendChild(renderer.domElement);
+      // And make sure that when the page is resized, everything gets updated
+      window.addEventListener("resize", onWindowResize, false);
+      var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      //  Now we can have a draw loop.
+      function draw() {
+        //mesh.rotation.x += 0.005;
+        //mesh.position.x = -0.5;
+        //mesh.rotation.y+= 0.01;
+        //camera.position.x += 0.01;
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(draw);
+      }
+
+      // This is the thing that does the resizing
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      // Finally, call the draw loop.
+      requestAnimationFrame(draw());
+    </script>
+  </body>
+</html>
