@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <script src = "https://mimicproject.com/libs/maximilian.js"></script>
+ <link href="https://fonts.googleapis.com/css?family=Staatliches" rel="stylesheet">  
+ <script src = "https://rawgit.com/nexus-js/ui/master/dist/NexusUI.js"></script>
+  <link rel="stylesheet" href="styleCSS" />
+</head>
+<body>
+  <div>
+    <div id="title">Happy rythm</div>
+    <div id="subtitle">Ziqing play</div>
+  <div><button id="playButton">Play</button></div>
+  <div><button id="stopButton" style="display:none">Stop</button></div>
+</div>
+<div id="oscilloscope"></div>
+<div id="spectrogram"></div>
+
+<script language="javascript" type="text/javascript">
+  
+  // We need to have a play button these days. Boring I know.
+	const playButton = document.getElementById('playButton');
+
+  //create a maximilian object
+  	var maxi = maximilian();
+
+  //create an audio engine
+	var maxiEngine = new maxi.maxiAudio();
+	
+	//create a bunch of stuff
+    var sample = new maxi.maxiSample();
+    var kick = new maxi.maxiSample();
+    var snare = new maxi.maxiSample();
+    var myOsc = new maxi.maxiOsc();
+    var myOsc2 = new maxi.maxiOsc();
+    var myClock = new maxi.maxiClock();
+  
+  	var scratch=0;
+    var counter = 0;
+    myClock.setTempo(120);
+    myClock.setTicksPerBeat(4);
+  	var oscilloscope,spectrogram;
+	
+	//when the play button is pressed...
+	let playAudio = () => {
+	  //arrange play button
+	  playButton.style.display="none";
+	  //start the audio engine
+	  maxiEngine.init();
+	  //the sample is from freesound https://freesound.org/people/schafferdavid/sounds/211471/
+  	maxiEngine.loadSample("A.wav", sample);
+  	maxiEngine.loadSample("B.wav", kick);
+  	maxiEngine.loadSample("C.wav", snare);
+   maxiEngine.loadSample("D.wav", snare); 
+      
+	  //show an oscilloscope and freqscope
+    Nexus.context = maxiEngine.context;
+	  oscilloscope = new Nexus.Oscilloscope('oscilloscope', {'size': [400,100]}).connect(maxiEngine.maxiAudioProcessor);
+    spectrogram = new Nexus.Spectrogram('spectrogram', {'size': [400,200]}).connect(maxiEngine.maxiAudioProcessor);
+
+		maxiEngine.play = function() {
+          
+      myClock.ticker();
+        
+        if (myClock.tick) {
+            
+            scratch=0;
+            counter++;
+        }
+
+        if (myClock.tick && counter%8===0) {
+            kick.trigger();            
+        }
+        if (myClock.tick && counter%16===4) {
+            kick.trigger();            
+        }
+
+
+        if (myClock.tick && counter%4==2) {
+                
+            sample.trigger();
+            snare.trigger();            
+        }
+
+        if (myClock.tick && counter%8==20) {
+            snare.trigger();            
+        }
+        
+       var out = kick.playOnce() + snare.playOnce() + sample.play(1 + myOsc.sinebuf(8));      	
+        return out * 0.5;
+		
+        }
+	}
+
+    // This script listens to the play button
+	playButton.addEventListener("click", () => playAudio());
+
+
+	
+
+</script>
+</body>
+</html>
