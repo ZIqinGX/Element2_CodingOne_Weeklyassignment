@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			margin: 0px;
+			background-color: #000000;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<script id="vertexShader" type="x-shader/x-vertex">
+		uniform highp float time;
+
+		void main() {
+	        gl_Position = vec4(position,1.0) ;                
+		}
+	</script>
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		//============================================================
+		//PUT YOUR GLSL CODE HERE
+		//============================================================
+
+        precision mediump float;
+        
+        uniform vec2 resolution;
+        uniform vec2 mouse;
+        uniform highp float time;
+        
+    
+        float square(vec2 pos, float size) {
+
+        	vec2 normCoords = gl_FragCoord.xy/resolution;
+
+            float aspect = resolution.x/resolution.y;
+            size*=0.1;
+            if (length((normCoords.x-pos.x) * aspect)< size && length(normCoords.y-pos.y) < size) {
+
+                return 1.0;
+
+            } else {
+
+                return 0.;
+            }
+        }
+
+        float rectangular(vec2 pos, float height, float width) {
+
+        	vec2 normCoords = gl_FragCoord.xy/resolution;
+
+            float aspect = resolution.x/resolution.y;
+            height*=0.1;
+            width*=0.1;
+            if (length((normCoords.x-pos.x) * aspect)< width && length(normCoords.y-pos.y) < height) {
+
+                return 1.0;
+
+            } else {
+
+                return 0.;
+            }
+        }
+
+        float line(vec2 pos, float funct) {
+
+           return step(funct,pos.y)-step(funct,pos.y-0.01);
+        }
+
+        float circle(vec2 pos, float size) {
+
+            size = 1./size;
+            size*=10.;
+            float aspect = resolution.x/resolution.y;
+
+            vec2 normCoord = vec2(gl_FragCoord.x/(resolution.x) * aspect,gl_FragCoord.y/resolution.y);
+
+            float colour = distance(normCoord,pos);
+            return smoothstep(colour * size, colour * size+0.02,1.);
+        }
+
+        void main(){
+
+        	//vec2 pos = gl_FragCoord.xy/resolution;
+
+            float rect = square(vec2(0.35,0.5),1.);
+
+            float rect2 = square(vec2(0.15,0.35),1.);
+
+            float realRect = rectangular(vec2(0.35,0.75),1.0,2.0);
+
+            float circleOne = circle(vec2(0.2,0.8),1.);
+
+            vec3 squareOne = vec3(0.3,0.1,0.5) * rect;
+
+            vec3 squareTwo = vec3(0.2,0.1,0.15) * rect2;
+
+            vec3 rectOne = vec3(0.25,0.23,0.0) * realRect;
+
+        	gl_FragColor = vec4(squareOne + squareTwo + circleOne + rectOne,1.0);
+        }
+		//============================================================
+		//END OF GLSL CODE
+		//============================================================
+	</script>
+	<script>
+		//change the resolution here. 1 is highest
+		var pixel_resolution = 2;
+		var stats;
+		var camera, scene, renderer;
+		var uniforms;
+		init();
+		animate();
+		function init() {
+
+			camera = new THREE.Camera();
+			camera.position.z = 1;
+			scene = new THREE.Scene();
+			var geometry = new THREE.PlaneBufferGeometry(2,2);
+			uniforms = { time: { type: 'f', value: 1.0 }, resolution: { type: 'v2', value: new THREE.Vector2() }, mouse: {type: "v2", value: new THREE.Vector2()}};
+			var material = new THREE.ShaderMaterial({ uniforms: uniforms, vertexShader: document.getElementById('vertexShader').textContent, fragmentShader: document.getElementById('fragmentShader').textContent });
+			var mesh = new THREE.Mesh(geometry, material);
+			scene.add(mesh);
+			renderer = new THREE.WebGLRenderer();
+			//Hack here to change resolution 
+			renderer.setPixelRatio(window.devicePixelRatio / pixel_resolution);
+			document.body.appendChild(renderer.domElement);
+			onWindowResize();
+			window.addEventListener('resize', onWindowResize, false);
+	        window.addEventListener('mousemove', onMouseMove, false);
+
+		}
+		function onWindowResize(event) {
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			uniforms.resolution.value.x = renderer.domElement.width;
+			uniforms.resolution.value.y = renderer.domElement.height;
+
+		}
+		function animate() {
+			requestAnimationFrame(animate);
+			render();
+		}
+		function onMouseMove( event ) {
+        	uniforms.mouse.value.x = ( event.clientX / window.innerWidth );
+ 	        uniforms.mouse.value.y = ( 1-(event.clientY) / window.innerHeight
+ 	        );
+        }
+		function render() {
+			uniforms.time.value += 0.01;
+			renderer.render(scene, camera);
+		}
+	</script>
+</body>
+</html>
